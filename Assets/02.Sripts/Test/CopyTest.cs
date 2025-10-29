@@ -1,8 +1,8 @@
 using UnityEngine;
 
-public class GroundEnemy : Enemy
+public class CopyTest : Enemy
 {
-    public enum State { Nomal, Attack }
+    public enum State { Nomal, Attack}
 
     [Header(" 기본 체력, 이동, 점프, 데미지")]
     [SerializeField] private int enemyHp = 3;
@@ -14,37 +14,34 @@ public class GroundEnemy : Enemy
     [SerializeField] private LayerMask groundLayer;
 
     [Header("플레이어 체크")]
-    [SerializeField] private Transform target;           //플레이어
-    [SerializeField] private float attackSpeed = 10.0f;  //몬스터가 플레이어를 발견했을때 속도
-    [SerializeField] private float playerLine = 5.0f;    //플레이어를 발견하는 레이캐스트 길이
-    [SerializeField] private float findRange = 5.0f;     //플레이어 발견 후 따라가는 범위
+    [SerializeField] private Transform target;
+    [SerializeField] private float attackSpeed = 10.0f;
+    [SerializeField] private float playerLine = 5.0f;
+    [SerializeField] private float findRange = 5.0f;
     [SerializeField] private LayerMask playerLayer;
 
     private StateMachine stateMachine;
     private Rigidbody2D rb;
     private SpriteRenderer sprite;
-    private Animator anim;
+    private Vector2 startPos;
 
     private Vector2 groundCheck;
     private Vector2 playerCheck;
     private Vector2 direction;
 
-    private int nextMove;           //노멀 상태에서 방향좌표를 -1, 0, 1 중 랜덤으로 한다
-    public float thinkTime = 5.0f;  //Invoke로 특정 함수를 thinkTime 후에 실행
-    private bool isGrounded;        //땅 확인
-    private bool isWall;            //벽 확인
-    private bool isPlayer;          //플레이어 확인
+    private int nextMove;
+    public float thinkTime = 5.0f;
+    private bool isGrounded;
+    private bool isWall;
+    private bool isPlayer;
 
-    [SerializeField] private float CheckY = 1.0f;   //플레이어 발견하는 레이캐스트의 Y축 높이
-
-    private static readonly int idleHash = Animator.StringToHash("DogRun");
+    [SerializeField] private float CheckY = 1.0f;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         sprite = GetComponent<SpriteRenderer>();
-        anim = GetComponent<Animator>();
-
+        
         stateMachine = gameObject.AddComponent<StateMachine>();
 
         stateMachine.AddState(State.Nomal, new NomalState(this));
@@ -58,6 +55,7 @@ public class GroundEnemy : Enemy
         {
             target = GameObject.FindWithTag("Player")?.transform;
         }
+        startPos = transform.position;
     }
 
     void Update()
@@ -74,8 +72,6 @@ public class GroundEnemy : Enemy
         {
             sprite.flipX = true;
         }
-
-        anim.SetFloat(idleHash, Mathf.Abs(rb.velocity.x)); //달려가는 애니메이션 실행
     }
     private void FixedUpdate()
     {
@@ -100,9 +96,9 @@ public class GroundEnemy : Enemy
     //모든 적 상태의 공통 부모 클래스
     private class EnemyState : BaseState
     {
-        protected GroundEnemy owner;
+        protected CopyTest owner;
 
-        public EnemyState(GroundEnemy owner)
+        public EnemyState(CopyTest owner)
         {
             this.owner = owner;
         }
@@ -117,15 +113,11 @@ public class GroundEnemy : Enemy
         }
         protected Rigidbody2D rb
         {
-            get { return owner.rb; }
+            get {return owner.rb;}
         }
         protected SpriteRenderer sprite
         {
             get { return owner.sprite; }
-        }
-        protected Animator anim
-        {
-            get { return owner.anim; }
         }
         protected float enemyHp
         {
@@ -147,11 +139,19 @@ public class GroundEnemy : Enemy
         {
             get { return owner.groundLayer; }
         }
+        protected Vector2 startPos
+        {
+            get { return owner.startPos; }
+        }
+        protected Vector2 groundPos
+        {
+            get { return owner.groundCheck; }
+        }
         protected int nextMove
         {
             get { return owner.nextMove; }
 
-            set { owner.nextMove = value; }
+            set { owner.nextMove = value; } 
         }
         protected float attackSpeed
         {
@@ -180,7 +180,7 @@ public class GroundEnemy : Enemy
     }
     private class NomalState : EnemyState
     {
-        public NomalState(GroundEnemy owner) : base(owner) { }
+        public NomalState(CopyTest owner) : base(owner) { }
 
         public override void Awake()
         {
@@ -207,11 +207,11 @@ public class GroundEnemy : Enemy
                 ChangeState(State.Attack);
             }
         }
-
+        
     }
     private class AttackState : EnemyState
     {
-        public AttackState(GroundEnemy owner) : base(owner) { }
+        public AttackState(CopyTest owner) : base(owner) { }
 
         public override void Update()
         {
@@ -224,33 +224,27 @@ public class GroundEnemy : Enemy
                 sprite.flipX = false;
             }
             else
-            {
+            { 
                 sprite.flipX = true;
             }
 
             //이동
-            rb.velocity = new Vector2(dir.x * attackSpeed, rb.velocity.y);
+            rb.velocity = new Vector2 (dir.x * attackSpeed, rb.velocity.y);
 
+            if (!isGrounded || isWall)
+            {
+                nextMove = nextMove * -1;
+                owner.CancelInvoke();
+                owner.Invoke("Think", thinkTime);
+            }
         }
         public override void Transition()
         {
-            if (Vector2.Distance(target.position, transform.position) > findRange || !isGrounded)
+            if (Vector2.Distance(target.position, transform.position) > findRange)
             {
-                owner.Think();
-                if (nextMove == 0)
-                {
-                    if (sprite.flipX)
-                    {
-                        nextMove = -1;
-                    }
-                    else
-                    {
-                        nextMove = +1;
-                    }
-                }
+                owner.Invoke("Think", thinkTime);
                 ChangeState(State.Nomal);
             }
-          
         }
     }
 
@@ -269,4 +263,3 @@ public class GroundEnemy : Enemy
     }
 
 }
-
