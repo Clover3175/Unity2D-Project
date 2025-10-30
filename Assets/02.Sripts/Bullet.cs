@@ -13,6 +13,9 @@ public class Bullet : MonoBehaviour
 
     public Effect effectPrefab;
 
+    private GroundEnemy groundEnemy;
+    private PlantEnemy plantEnemy;
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -38,10 +41,9 @@ public class Bullet : MonoBehaviour
             ReturnPool();
         }
     }
-
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!collision.CompareTag("Enemy")) return;
+        if (!collision.gameObject.CompareTag("Enemy")) return;
 
         var fx = PoolManager.Instance.GetFromPool(effectPrefab);
 
@@ -51,7 +53,19 @@ public class Bullet : MonoBehaviour
             fx.PlayEffect();
         }
 
+        groundEnemy = collision.gameObject.GetComponent<GroundEnemy>();
+        plantEnemy = collision.gameObject.GetComponent<PlantEnemy>();
 
+        if (groundEnemy != null)
+        {
+            groundEnemy.TakeDamage(Damage);
+            ReturnPool();
+        }
+        if (plantEnemy != null)
+        {
+            plantEnemy.TakeDamage(Damage);
+            ReturnPool();
+        }
     }
 
     void ReturnPool()

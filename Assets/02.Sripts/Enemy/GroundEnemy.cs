@@ -1,11 +1,12 @@
+using System.Collections;
 using UnityEngine;
 
 public class GroundEnemy : Enemy
 {
-    public enum State { Nomal, Attack }
+    public enum State { Normal, Attack }
 
     [Header(" 기본 체력, 이동, 점프, 데미지")]
-    [SerializeField] private int enemyHp = 3;
+    [SerializeField] private int enemyHP = 3;
     [SerializeField] private float enemySpeed = 5.0f;
     [SerializeField] private int damage = 1;
 
@@ -37,7 +38,11 @@ public class GroundEnemy : Enemy
 
     [SerializeField] private float CheckY = 1.0f;   //플레이어 발견하는 레이캐스트의 Y축 높이
 
-    private static readonly int idleHash = Animator.StringToHash("DogRun");
+    private static readonly int idleHash = Animator.StringToHash("DogRun");  //달려가는 애니메이션
+
+    private PlayerController player;
+
+    private float damageCount = 0f;  // 플레이어가 얼마만큼 닿아있으면 데미지를 입는지
 
     private void Awake()
     {
@@ -47,10 +52,10 @@ public class GroundEnemy : Enemy
 
         stateMachine = gameObject.AddComponent<StateMachine>();
 
-        stateMachine.AddState(State.Nomal, new NomalState(this));
+        stateMachine.AddState(State.Normal, new NomalState(this));
         stateMachine.AddState(State.Attack, new AttackState(this));
 
-        stateMachine.InitState(State.Nomal);
+        stateMachine.InitState(State.Normal);
     }
     void Start()
     {
@@ -129,7 +134,7 @@ public class GroundEnemy : Enemy
         }
         protected float enemyHp
         {
-            get { return owner.enemyHp; }
+            get { return owner.enemyHP; }
         }
         protected float enemySpeed
         {
@@ -248,10 +253,39 @@ public class GroundEnemy : Enemy
                         nextMove = +1;
                     }
                 }
-                ChangeState(State.Nomal);
+                ChangeState(State.Normal);
             }
           
         }
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!collision.gameObject.CompareTag("Player")) return;
+
+        player = collision.gameObject.GetComponent<PlayerController>();
+
+        if (player != null)
+        {
+            player.TakeDamage(damage);
+        }
+    }
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!collision.gameObject.CompareTag("Player")) return;
+
+        player = collision.gameObject.GetComponent<PlayerController>();
+
+        if (player != null)
+        {
+            damageCount += Time.deltaTime;
+
+            if (damageCount >= 2f)
+            {
+                player.TakeDamage(damage);
+                damageCount = 0f;
+            }
+        }
+
     }
 
     private void OnDrawGizmosSelected()
@@ -266,6 +300,15 @@ public class GroundEnemy : Enemy
 
         Gizmos.color = Color.green;
         Gizmos.DrawRay(playerCheck, direction * playerLine);
+    }
+    public void TakeDamage(int damage)
+    {
+        enemyHP -= damage;
+
+        if (enemyHP >= 0)
+        {
+            gameObject.SetActive(false);
+        }
     }
 
 }
