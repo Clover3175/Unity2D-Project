@@ -8,6 +8,12 @@ public class PoolManager : MonoBehaviour
 
     private Dictionary<string, object> pools = new Dictionary<string, object>();
 
+    public Dictionary<string, object> Pools
+    {
+        get { return pools; }
+        private set { pools = value; } 
+    }
+
     private void Awake()
     {
         if (Instance == null)               //처음 실행될 때는 기본적으로 Instance는 null이다.

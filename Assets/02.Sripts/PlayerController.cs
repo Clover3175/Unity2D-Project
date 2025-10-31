@@ -3,8 +3,7 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("체력/이동/점프/대쉬")]
-    [SerializeField] private int playerHP = 5;
+    [Header("이동/점프/대쉬")]
     [SerializeField] private float moveSpeed = 5.0f;  //이동속도
     [SerializeField] private float jumpForce = 7.0f;  //점프높이
     [SerializeField] private float moveDash = 7.0f;   //대쉬속도
@@ -195,15 +194,6 @@ public class PlayerController : MonoBehaviour
         {
             isLadder = false;  
             ladderUp = false;
-        }
-    }
-    public void TakeDamage(int damage)
-    {
-        playerHP -= damage;
-
-        if (playerHP <= 0)
-        {
-            gameObject.SetActive(false);
         }
     }
 }

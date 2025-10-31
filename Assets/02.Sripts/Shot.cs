@@ -1,4 +1,3 @@
-using Unity.IO.LowLevel.Unsafe;
 using UnityEngine;
 
 public class Shot : MonoBehaviour
@@ -6,6 +5,7 @@ public class Shot : MonoBehaviour
     //총알 관련
     public Bullet bullectPrefab;
     public Effect effectPrefab;
+    public BulletUP bulletUPPrefab;
 
     [SerializeField] private float shotRate = 0.2f;  //발사간격
     [SerializeField] private float nextShotTime;     //다음 발사 가능 시간
@@ -18,7 +18,7 @@ public class Shot : MonoBehaviour
     private PlayerController playerController; 
     private Animator anim;
 
-    //public Bullet bullet;
+    private PlayerStats playerStats;
 
     private void Awake()
     {
@@ -27,21 +27,46 @@ public class Shot : MonoBehaviour
 
         playerController = transform.parent.GetComponent<PlayerController>();
         anim = playerController.GetComponent<Animator>();  //플레이어의 애니메이션
+
+        playerStats = playerController.GetComponent<PlayerStats>();
     }
 
     void Start()
     {
         Managers.Pool.CreatPool(bullectPrefab, 100);
         Managers.Pool.CreatPool(effectPrefab, 100);
+
+        playerStats.UpYes = false;
     }
 
     void Update()
     {
+        //bulletUPPrefab = FindAnyObjectByType<BulletUP>();
+
         //발사처리
         if (Input.GetKeyDown(KeyCode.A) && Time.time >= nextShotTime)
         {
             nextShotTime = Time.time + shotRate;  //다음 발사 가능 시간 계산
-            PlayerShot();  //발사     
+
+            if (!playerStats.UpYes)
+            {
+                PlayerShot();  //발사
+            }
+            else if (playerStats.UpYes)
+            {
+                PowerUPShot();
+            }
+        }
+        if (playerStats.UpYes)
+        {
+            playerStats.UpTime += Time.deltaTime;
+
+            if (playerStats.UpTime >= playerStats.UpTimeMax)
+            {
+                playerStats.UpTime = 0.0f;
+
+                playerStats.UpYes = false;
+            }
         }
 
         //ShootPoint 빈 게임 오브젝트의 좌우 위치 설정
@@ -79,5 +104,23 @@ public class Shot : MonoBehaviour
         {
             bullet.dir = Vector2.right;
         }                                         //여기까지
-    } 
+    }
+    private void PowerUPShot()
+    {
+        BulletUP bulletUP = Managers.Pool.GetFromPool(bulletUPPrefab);
+
+        bulletUP.transform.SetLocalPositionAndRotation(ShotPoint.position, Quaternion.identity);
+
+        //플레이어의 방향에 맞게 총알 좌우 뱡향 설정
+        bulletUP.GetComponent<SpriteRenderer>().flipX = playerSprite.flipX;
+
+        if (playerSprite.flipX)
+        {
+            bulletUP.dir = Vector2.left;
+        }
+        else if (!playerSprite.flipX)
+        {
+            bulletUP.dir = Vector2.right;
+        }                                         //여기까지
+    }
 }

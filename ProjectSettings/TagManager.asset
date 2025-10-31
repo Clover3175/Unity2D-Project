@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Enemy
   - Ladder
+  - PowerUP_01
   layers:
   - Default
   - TransparentFX

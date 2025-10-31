@@ -32,6 +32,7 @@ public class Bullet : MonoBehaviour
     {
         spawnTime = Time.time;   
     }
+    //ÃÑ¾Ë ¹ß»ç Áß
     void Update()
     {
         transform.Translate(dir * speed * Time.deltaTime);

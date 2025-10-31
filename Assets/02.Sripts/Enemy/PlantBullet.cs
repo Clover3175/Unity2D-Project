@@ -7,7 +7,7 @@ public class PlantBullet : MonoBehaviour
     [SerializeField] float lifeTime = 3.0f;    //유지되는 시간
     [SerializeField] int damage = 1;           //데미지
 
-    private PlayerController player;
+    private PlayerStats player;
 
     private Rigidbody2D rb;
     public Vector2 dir = Vector2.left;
@@ -40,7 +40,7 @@ public class PlantBullet : MonoBehaviour
     {
         if (!collision.gameObject.CompareTag("Player")) return;
 
-        player = collision.gameObject.GetComponent<PlayerController>();
+        player = collision.gameObject.GetComponent<PlayerStats>();
 
         if (player != null)
         {

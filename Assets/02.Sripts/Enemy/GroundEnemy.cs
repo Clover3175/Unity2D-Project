@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 public class GroundEnemy : Enemy
@@ -40,7 +39,7 @@ public class GroundEnemy : Enemy
 
     private static readonly int idleHash = Animator.StringToHash("DogRun");  //달려가는 애니메이션
 
-    private PlayerController player;
+    private PlayerStats player;
 
     private float damageCount = 0f;  // 플레이어가 얼마만큼 닿아있으면 데미지를 입는지
 
@@ -262,7 +261,7 @@ public class GroundEnemy : Enemy
     {
         if (!collision.gameObject.CompareTag("Player")) return;
 
-        player = collision.gameObject.GetComponent<PlayerController>();
+        player = collision.gameObject.GetComponent<PlayerStats>();
 
         if (player != null)
         {
@@ -273,7 +272,7 @@ public class GroundEnemy : Enemy
     {
         if (!collision.gameObject.CompareTag("Player")) return;
 
-        player = collision.gameObject.GetComponent<PlayerController>();
+        player = collision.gameObject.GetComponent<PlayerStats>();
 
         if (player != null)
         {
@@ -305,7 +304,7 @@ public class GroundEnemy : Enemy
     {
         enemyHP -= damage;
 
-        if (enemyHP >= 0)
+        if (enemyHP <= 0)
         {
             gameObject.SetActive(false);
         }

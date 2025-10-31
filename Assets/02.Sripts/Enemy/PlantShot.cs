@@ -102,11 +102,11 @@ public class PlantShot : MonoBehaviour
     IEnumerator AttackAnim()
     {
       
-            anim.SetBool("PlantAttack", true);
+        anim.SetBool("PlantAttack", true);
 
-            yield return new WaitForSeconds(0.7f);
+        yield return new WaitForSeconds(0.7f);
 
-            PlantShotting();
+        PlantShotting();
         
     }
     private void OnDrawGizmosSelected()
