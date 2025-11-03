@@ -39,6 +39,7 @@ public class PlayerController : MonoBehaviour
     private bool isWallJump;
     private float isRight = 1;    //방향
 
+    public bool isBouncing = false;  // 피격되었을때
 
 
     //애니메이션
@@ -84,6 +85,8 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
+        if (isBouncing) return;
+
         PlayerMove();
         
         PlayerDash();

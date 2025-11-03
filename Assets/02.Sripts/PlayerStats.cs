@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 public class PlayerStats : MonoBehaviour
@@ -12,20 +13,39 @@ public class PlayerStats : MonoBehaviour
     [SerializeField] private float upTime = 0.0f;
     [SerializeField] private float upTimeMax = 20.0f;
 
+    [Header("데미지를 받았을때 무적 시간/튕기는 거리")]
+    [SerializeField] private float invincibleTime = 3.0f;
+    [SerializeField] private int bounceDis = 7;
+
     private bool upYes = false;
 
     private bool exUpYes = false;
 
+    private Rigidbody2D rb;
+
+    private SpriteRenderer sprite;
+
+    private PlayerController playerController;
+
+    private UIManager uiManager;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        sprite = GetComponent<SpriteRenderer>();
+
+        playerController = GetComponent<PlayerController>();
+    }
 
     public int PlayerHP
     {
         get {  return playerHP; }
-        private set { playerHP = value; }
+        set { playerHP = value; }
     }
     public int MaxHP
     {
         get { return maxHP; }
-        private set { maxHP = value; }
+        set { maxHP = value; }
     }
     public int BulletTimes
     {
@@ -83,6 +103,8 @@ public class PlayerStats : MonoBehaviour
         {
             bulletTimes = bulletMax;
         }
+
+        UIManager.Instance.ReSkillIcon();
     }
     public void TakePowerUP(BulletUP bulletUP)
     {
@@ -91,5 +113,35 @@ public class PlayerStats : MonoBehaviour
     public void TakeEXUP(BulletEXUP bulletEXUP)
     {
         Managers.Pool.CreatPool(bulletEXUP, 1000);
+    }
+    private void OffDamaged()
+    {
+        gameObject.layer = 3;
+        sprite.color = new Color(1, 1, 1, 1);
+    }
+    IEnumerator OnDamaged(Vector2 enemyPos)
+    {
+        playerController.isBouncing = true;
+
+        gameObject.layer = 8;
+       
+        sprite.color = new Color(1, 1, 1, 0.4f);
+       
+        int dirc = transform.position.x - enemyPos.x > 0 ? 1 : -1;
+        rb.AddForce(new Vector2(dirc, 1) * bounceDis, ForceMode2D.Impulse);
+
+        yield return new WaitForSeconds(0.5f);
+
+        playerController.isBouncing = false;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Enemy"))
+        { 
+            StartCoroutine(OnDamaged(collision.transform.position));
+
+            Invoke("OffDamaged", invincibleTime);
+        }
     }
 }

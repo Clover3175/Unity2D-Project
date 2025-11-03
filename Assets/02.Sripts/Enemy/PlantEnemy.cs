@@ -10,12 +10,17 @@ public class PlantEnemy : Enemy
     [SerializeField] private LayerMask playerLayer;
 
     [SerializeField] private int plantHP = 3;
+    [SerializeField] private int damage = 1;
 
     private Rigidbody2D rb;
     private SpriteRenderer sprite;
     private Animator anim;
 
     private bool isPlayer;
+
+    private PlayerStats player;
+
+    private float damageCount = 0f;
 
     private void Awake()
     {
@@ -58,6 +63,17 @@ public class PlantEnemy : Enemy
         if (plantHP <= 0)
         {
             gameObject.SetActive(false);
+        }
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (!collision.gameObject.CompareTag("Player")) return;
+
+        player = collision.gameObject.GetComponent<PlayerStats>();
+
+        if (player != null)
+        {
+            player.TakeDamage(damage);
         }
     }
 }
