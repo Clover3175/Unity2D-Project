@@ -30,7 +30,7 @@ public class GroundEnemy : Enemy
     private Vector2 direction;
 
     private int nextMove;           //노멀 상태에서 방향좌표를 -1, 0, 1 중 랜덤으로 한다
-    public float thinkTime = 5.0f;  //Invoke로 특정 함수를 thinkTime 후에 실행
+    [SerializeField] private float thinkTime = 5.0f;  //Invoke로 특정 함수를 thinkTime 후에 실행
     private bool isGrounded;        //땅 확인
     private bool isWall;            //벽 확인
     private bool isPlayer;          //플레이어 확인
@@ -39,9 +39,11 @@ public class GroundEnemy : Enemy
 
     private static readonly int idleHash = Animator.StringToHash("DogRun");  //달려가는 애니메이션
 
-    private PlayerStats player;
+    private PlayerStats player;  //플레이어 정보
 
     private float damageCount = 0f;  // 플레이어가 얼마만큼 닿아있으면 데미지를 입는지
+
+    [SerializeField] private int plusScore = 100; //처치시 점수
 
     private void Awake()
     {
@@ -307,6 +309,7 @@ public class GroundEnemy : Enemy
         if (enemyHP <= 0)
         {
             gameObject.SetActive(false);
+            UIManager.Instance.AddScore(plusScore);
         }
     }
 

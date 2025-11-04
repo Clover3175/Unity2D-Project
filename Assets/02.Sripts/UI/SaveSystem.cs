@@ -1,9 +1,9 @@
 using System.IO;
 using UnityEngine;
 
-public class SaveSytem 
+public class SaveSystem 
 {
-    private static readonly string SavePath = Path.Combine(Application.persistentDataPath, "save.json");
+    private static readonly string SavePath = Path.Combine(Application.persistentDataPath, "ProjectSave.json");
 
 
     //데이터를 JSON형식으로 저장
@@ -22,6 +22,7 @@ public class SaveSytem
         if (!File.Exists(SavePath))
         {
             data = null;
+            Debug.Log("저장 파일이 없습니다");
             return false;
         }
 
@@ -29,6 +30,8 @@ public class SaveSytem
 
         data = JsonUtility.FromJson<GameData>(json);
 
+        Debug.Log("불러오기 성공 : " + SavePath);
+        Debug.Log(json);
         return true;
     }
 }

@@ -6,5 +6,6 @@ public class NextStage02 : MonoBehaviour
     public void NextScene02()
     {
         SceneManager.LoadScene("Stage02");
+        UIManager.Instance.StageClearClick();
     }
 }

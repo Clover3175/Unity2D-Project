@@ -1,6 +1,8 @@
 
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+
 
 public class PoolManager : MonoBehaviour
 {
@@ -26,6 +28,29 @@ public class PoolManager : MonoBehaviour
             Destroy(gameObject);            //중복은 삭제
         }
     }
+    //여기서
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        foreach (var poolObj in pools.Values)
+        {
+            var clearMethod = poolObj.GetType().GetMethod("Clear");
+            if (clearMethod != null)
+            {
+                clearMethod.Invoke(poolObj, null);
+            }
+        }
+        pools.Clear();
+
+    } // 여기까지 = 풀매니저에 저장된 프리팹들이 씬 전환될 때 삭제가 되는데 삭제가 된 것들이 남아서 문제가 생긴다. 이건 그걸 해결하는 코드이다.
+
     //풀 등록
     public void CreatPool<T>(T prefab, int initCount, Transform parent = null) where T : MonoBehaviour
     {

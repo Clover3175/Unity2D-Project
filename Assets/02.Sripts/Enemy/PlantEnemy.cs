@@ -22,6 +22,8 @@ public class PlantEnemy : Enemy
 
     private float damageCount = 0f;
 
+    [SerializeField] private int plusScore = 100; //처치시 점수
+
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -63,6 +65,7 @@ public class PlantEnemy : Enemy
         if (plantHP <= 0)
         {
             gameObject.SetActive(false);
+            UIManager.Instance.AddScore(plusScore);
         }
     }
     private void OnCollisionEnter2D(Collision2D collision)

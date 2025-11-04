@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 [Serializable]
-public class GameData : MonoBehaviour
+public class GameData
 {
     public string playerName;
     public int score;

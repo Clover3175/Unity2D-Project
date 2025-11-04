@@ -1,13 +1,15 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerStats : MonoBehaviour
 {
-    [Header("체력/필살 횟수")]
+    [Header("목숨/체력/필살 횟수")]
+    [SerializeField] private int playerLife = 3;
     [SerializeField] private int playerHP = 5;
     [SerializeField] private int maxHP = 5;
-    [SerializeField] private int bulletTimes = 5;
-    [SerializeField] private int bulletMax = 5;
+    [SerializeField] private int bulletTimes = 3;
+    [SerializeField] private int bulletMax = 3;
 
     [Header("탄환 업그레이드 유지 시간")]
     [SerializeField] private float upTime = 0.0f;
@@ -27,7 +29,7 @@ public class PlayerStats : MonoBehaviour
 
     private PlayerController playerController;
 
-    private UIManager uiManager;
+    public string LastCheckPointId { get; private set; }
 
     private void Awake()
     {
@@ -36,7 +38,11 @@ public class PlayerStats : MonoBehaviour
 
         playerController = GetComponent<PlayerController>();
     }
-
+    public int PlayerLife
+    {
+        get { return playerLife; }
+        private set { playerLife = value; }
+    }
     public int PlayerHP
     {
         get {  return playerHP; }
@@ -84,6 +90,38 @@ public class PlayerStats : MonoBehaviour
         if (playerHP <= 0)
         {
             gameObject.SetActive(false);
+            playerLife -= 1;
+            UIManager.Instance.ResetScore();
+
+            if (SaveSystem.TryLoad(out var loaded))
+            {
+                UIManager.Instance.Score = loaded.score;
+                LastCheckPointId = loaded.lastCheckPointId;
+
+                UIManager.Instance.ScoreUI();
+                GameManager.Instance.TelePortCheckPoint(GameManager.Instance.SaveCount);
+                gameObject.SetActive(true);
+
+                playerHP = MaxHP;
+
+                bulletTimes = bulletMax;
+
+                foreach (var skillIcon in UIManager.Instance.SkillIcon)
+                {
+                    skillIcon.enabled = true;
+                }
+            }
+            else
+            {
+                UIManager.Instance.Score = 0;
+                LastCheckPointId = null;
+                UIManager.Instance.ScoreUI();
+            }
+
+            if (playerLife <= 0)
+            {
+                UIManager.Instance.GameOver();
+            }
         }
     }
     public void TakeHeal(int heal)
@@ -144,4 +182,5 @@ public class PlayerStats : MonoBehaviour
             Invoke("OffDamaged", invincibleTime);
         }
     }
+    
 }

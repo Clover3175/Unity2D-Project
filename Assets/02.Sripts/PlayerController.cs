@@ -52,6 +52,11 @@ public class PlayerController : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
     }
+    private void OnEnable()
+    {
+        rb.velocity = Vector3.zero;
+        isBouncing = false;
+    }
 
     void Update()
     {
