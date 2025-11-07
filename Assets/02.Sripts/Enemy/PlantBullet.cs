@@ -48,7 +48,12 @@ public class PlantBullet : MonoBehaviour
 
             ReturnPool();
         }
-  
+
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Wall"))
+        {
+            ReturnPool();
+        }
+
     }
     private void ReturnPool()
     {

@@ -32,7 +32,7 @@ public class SavePoint : MonoBehaviour
             {
                 GameManager.Instance.SaveCheckPoint(CheckPointId);
 
-                savePlayer.sortingOrder = 1;
+                savePlayer.sortingOrder = 2;
 
                 StartCoroutine(SaveText());
 

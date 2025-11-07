@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.SocialPlatforms.Impl;
 
 public class GameManager : MonoBehaviour
@@ -15,7 +16,6 @@ public class GameManager : MonoBehaviour
 
     [Header("Player Info")]
     [SerializeField] private string defualtPlayerName = "Kim";
-    [SerializeField] private int defualtScore = 1;
 
     [Header("처음 시작 장소")]
     [SerializeField] private Transform reStartObject;
@@ -29,6 +29,22 @@ public class GameManager : MonoBehaviour
         get { return saveCount; }
         set { saveCount = value; }
     }
+   //private void OnEnable()
+   //{
+   //    SceneManager.sceneLoaded += OnSceneLoaded;
+   //}
+   //
+   //private void OnDisable()
+   //{
+   //    SceneManager.sceneLoaded -= OnSceneLoaded;
+   //}
+   //
+   //private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+   //{
+   //    var newPlayer = GameObject.FindWithTag("Player")?.GetComponent<PlayerStats>();
+   //    if (newPlayer != null)
+   //        UIManager.Instance.ConnectPlayer(newPlayer);
+   //}
 
     private void Awake()
     {
@@ -73,6 +89,7 @@ public class GameManager : MonoBehaviour
             playerName = defualtPlayerName,
             score = UIManager.Instance.Score,
             lastCheckPointId = LastCheckPointId,
+            sceneName = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name
         };
         SaveSystem.Save(data);
     }
@@ -99,5 +116,6 @@ public class GameManager : MonoBehaviour
             }
             break;
         }
+        
     }
 }

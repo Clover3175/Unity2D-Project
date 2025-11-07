@@ -22,7 +22,6 @@ public class SaveSystem
         if (!File.Exists(SavePath))
         {
             data = null;
-            Debug.Log("저장 파일이 없습니다");
             return false;
         }
 
@@ -30,8 +29,6 @@ public class SaveSystem
 
         data = JsonUtility.FromJson<GameData>(json);
 
-        Debug.Log("불러오기 성공 : " + SavePath);
-        Debug.Log(json);
         return true;
     }
 }

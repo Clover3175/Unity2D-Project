@@ -1,11 +1,11 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class PlayerStats : MonoBehaviour
 {
     [Header("¸ñ¼û/Ã¼·Â/ÇÊ»ì È½¼ö")]
     [SerializeField] private int playerLife = 3;
+    [SerializeField] private int playerLifeMax = 3;
     [SerializeField] private int playerHP = 5;
     [SerializeField] private int maxHP = 5;
     [SerializeField] private int bulletTimes = 3;
@@ -29,6 +29,8 @@ public class PlayerStats : MonoBehaviour
 
     private PlayerController playerController;
 
+    private bool respawnDelay = false;
+
     public string LastCheckPointId { get; private set; }
 
     private void Awake()
@@ -41,7 +43,12 @@ public class PlayerStats : MonoBehaviour
     public int PlayerLife
     {
         get { return playerLife; }
-        private set { playerLife = value; }
+        set { playerLife = value; }
+    }
+    public int PlayerLifeMax
+    {
+        get { return playerLifeMax; }
+        private set { playerLifeMax = value; }
     }
     public int PlayerHP
     {
@@ -85,6 +92,8 @@ public class PlayerStats : MonoBehaviour
     }
     public void TakeDamage(int damage)
     {
+        if (respawnDelay) return;
+
         playerHP -= damage;
 
         if (playerHP <= 0)
@@ -95,11 +104,12 @@ public class PlayerStats : MonoBehaviour
 
             if (SaveSystem.TryLoad(out var loaded))
             {
-                UIManager.Instance.Score = loaded.score;
+                UIManager.Instance.Score = 0;
                 LastCheckPointId = loaded.lastCheckPointId;
 
                 UIManager.Instance.ScoreUI();
                 GameManager.Instance.TelePortCheckPoint(GameManager.Instance.SaveCount);
+
                 gameObject.SetActive(true);
 
                 playerHP = MaxHP;
@@ -110,6 +120,10 @@ public class PlayerStats : MonoBehaviour
                 {
                     skillIcon.enabled = true;
                 }
+
+                UIManager.Instance.ConnectPlayer(this);
+
+                StartCoroutine(RespawnDelay());
             }
             else
             {
@@ -120,7 +134,7 @@ public class PlayerStats : MonoBehaviour
 
             if (playerLife <= 0)
             {
-                UIManager.Instance.GameOver();
+                UIManager.Instance.GameOverUI();
             }
         }
     }
@@ -152,6 +166,14 @@ public class PlayerStats : MonoBehaviour
     {
         Managers.Pool.CreatPool(bulletEXUP, 1000);
     }
+    IEnumerator RespawnDelay()
+    {
+        respawnDelay = true;
+
+        yield return new WaitForSeconds(1);
+
+        respawnDelay = false;
+    }
     private void OffDamaged()
     {
         gameObject.layer = 3;
@@ -159,7 +181,7 @@ public class PlayerStats : MonoBehaviour
     }
     IEnumerator OnDamaged(Vector2 enemyPos)
     {
-        playerController.isBouncing = true;
+        playerController.playerStop = true;
 
         gameObject.layer = 8;
        
@@ -170,7 +192,7 @@ public class PlayerStats : MonoBehaviour
 
         yield return new WaitForSeconds(0.5f);
 
-        playerController.isBouncing = false;
+        playerController.playerStop = false;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

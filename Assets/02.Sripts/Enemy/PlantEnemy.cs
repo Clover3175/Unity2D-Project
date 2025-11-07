@@ -6,7 +6,6 @@ public class PlantEnemy : Enemy
 
     [Header("플레이어 체크")]
     [SerializeField] private Transform target;
-    [SerializeField] private float checkLine = 5.0f;
     [SerializeField] private LayerMask playerLayer;
 
     [SerializeField] private int plantHP = 3;
@@ -19,8 +18,6 @@ public class PlantEnemy : Enemy
     private bool isPlayer;
 
     private PlayerStats player;
-
-    private float damageCount = 0f;
 
     [SerializeField] private int plusScore = 100; //처치시 점수
 

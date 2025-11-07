@@ -1,7 +1,4 @@
 using System.Collections;
-using System.Runtime.CompilerServices;
-using TreeEditor;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlantShot : MonoBehaviour
@@ -112,7 +109,7 @@ public class PlantShot : MonoBehaviour
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;
-        Gizmos.DrawRay(shotPoint.position, dir * shotLine);
+        Gizmos.DrawRay(shotPoint.position, shotPoint.localPosition * shotLine);
     }
 
 }

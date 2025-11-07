@@ -15,7 +15,7 @@ public class BulletUP : MonoBehaviour
 
     private GroundEnemy groundEnemy;
     private PlantEnemy plantEnemy;
-
+    private FlyEnemy flyEnemy;
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -44,8 +44,6 @@ public class BulletUP : MonoBehaviour
     }
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (!collision.gameObject.CompareTag("Enemy")) return;
-
         var fx = PoolManager.Instance.GetFromPool(effectPrefab);
 
         if (fx != null)
@@ -54,17 +52,29 @@ public class BulletUP : MonoBehaviour
             fx.PlayEffect();
         }
 
-        groundEnemy = collision.gameObject.GetComponent<GroundEnemy>();
-        plantEnemy = collision.gameObject.GetComponent<PlantEnemy>();
-
-        if (groundEnemy != null)
+        if (collision.gameObject.CompareTag("Enemy"))
         {
-            groundEnemy.TakeDamage(Damage);
+            groundEnemy = collision.gameObject.GetComponent<GroundEnemy>();
+            plantEnemy = collision.gameObject.GetComponent<PlantEnemy>();
+            flyEnemy = collision.gameObject.GetComponent<FlyEnemy>();
+
+            if (groundEnemy != null)
+            {
+                groundEnemy.TakeDamage(Damage);
+            }
+            if (plantEnemy != null)
+            {
+                plantEnemy.TakeDamage(Damage);
+            }
+            if (flyEnemy != null)
+            {
+                flyEnemy.TakeDamage(Damage);
+            }
             ReturnPool();
         }
-        if (plantEnemy != null)
+
+        if (collision.gameObject.CompareTag("Ground") || collision.gameObject.CompareTag("Wall"))
         {
-            plantEnemy.TakeDamage(Damage);
             ReturnPool();
         }
     }

@@ -20,10 +20,13 @@ public class GroundEnemy : Enemy
     [SerializeField] private float findRange = 5.0f;     //플레이어 발견 후 따라가는 범위
     [SerializeField] private LayerMask playerLayer;
 
+    [Header("애니메이션")]
+    [SerializeField] private Animator anim;
+    [SerializeField] private string runAnim = "DogRun";
+
     private StateMachine stateMachine;
     private Rigidbody2D rb;
     private SpriteRenderer sprite;
-    private Animator anim;
 
     private Vector2 groundCheck;
     private Vector2 playerCheck;
@@ -34,10 +37,10 @@ public class GroundEnemy : Enemy
     private bool isGrounded;        //땅 확인
     private bool isWall;            //벽 확인
     private bool isPlayer;          //플레이어 확인
+    private bool isThinking = false; //Think 예약 플래그
+    private bool isFlipX = false; // 벽,낭떠러지에서 한 번만 반전
 
     [SerializeField] private float CheckY = 1.0f;   //플레이어 발견하는 레이캐스트의 Y축 높이
-
-    private static readonly int idleHash = Animator.StringToHash("DogRun");  //달려가는 애니메이션
 
     private PlayerStats player;  //플레이어 정보
 
@@ -81,7 +84,7 @@ public class GroundEnemy : Enemy
             sprite.flipX = true;
         }
 
-        anim.SetFloat(idleHash, Mathf.Abs(rb.velocity.x)); //달려가는 애니메이션 실행
+        anim.SetFloat(runAnim, Mathf.Abs(rb.velocity.x)); //달려가는 애니메이션 실행
     }
     private void FixedUpdate()
     {
@@ -96,12 +99,27 @@ public class GroundEnemy : Enemy
         playerCheck = new Vector2(rb.position.x, rb.position.y + CheckY);
         direction = sprite.flipX ? Vector2.right : Vector2.left;
         isPlayer = Physics2D.Raycast(playerCheck, direction, playerLine, playerLayer);
+
+        //낭떨어지거나 앞에 Ground가 있으면 돌아가기
+        if (!isGrounded || isWall)
+        {
+            nextMove *= -1;
+        }
     }
     private void Think()
     {
-        nextMove = Random.Range(-1, 2);
-        Invoke("Think", thinkTime);   //재귀함수는 딜레이 없이 사용하는 것은 위험
+        if (isThinking) return;
+        isThinking = true;
 
+        nextMove = Random.Range(-1, 2);
+        //CancelInvoke("ResetThink");
+        Invoke("ResetThink", thinkTime);   //재귀함수는 딜레이 없이 사용하는 것은 위험
+
+    }
+    private void ResetThink()
+    {
+        isThinking = false;
+        Think();
     }
     //모든 적 상태의 공통 부모 클래스
     private class EnemyState : BaseState
@@ -183,27 +201,23 @@ public class GroundEnemy : Enemy
         {
             get { return owner.isPlayer; }
         }
+        protected bool isFlipX
+        {
+            get { return owner.isFlipX; }
+        }
     }
     private class NomalState : EnemyState
     {
         public NomalState(GroundEnemy owner) : base(owner) { }
 
-        public override void Awake()
+        public override void Enter()
         {
-            owner.Invoke("Think", thinkTime);
+            owner.Think();
         }
         public override void Update()
         {
             //기본 동작(가만히 있거나 돌아다님)
             rb.velocity = new Vector2(nextMove * enemySpeed, rb.velocity.y);
-
-            //낭떨어지거나 앞에 Ground가 있으면 돌아가기
-            if (!isGrounded || isWall)
-            {
-                nextMove = nextMove * -1;
-                owner.CancelInvoke();
-                owner.Invoke("Think", thinkTime);
-            }
         }
         public override void Transition()
         {
@@ -236,7 +250,6 @@ public class GroundEnemy : Enemy
 
             //이동
             rb.velocity = new Vector2(dir.x * attackSpeed, rb.velocity.y);
-
         }
         public override void Transition()
         {

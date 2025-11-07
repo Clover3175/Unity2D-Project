@@ -15,6 +15,7 @@ public class BulletEXUP : MonoBehaviour
 
     private GroundEnemy groundEnemy;
     private PlantEnemy plantEnemy;
+    private FlyEnemy flyEnemy;
 
     private void Awake()
     {
@@ -44,8 +45,6 @@ public class BulletEXUP : MonoBehaviour
     }
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!collision.CompareTag("Enemy")) return;
-
         var fx = PoolManager.Instance.GetFromPool(effectPrefab);
 
         if (fx != null)
@@ -54,16 +53,24 @@ public class BulletEXUP : MonoBehaviour
             fx.PlayEffect();
         }
 
-        groundEnemy = collision.gameObject.GetComponent<GroundEnemy>();
-        plantEnemy = collision.gameObject.GetComponent<PlantEnemy>();
+        if (collision.gameObject.CompareTag("Enemy"))
+        {
+            groundEnemy = collision.gameObject.GetComponent<GroundEnemy>();
+            plantEnemy = collision.gameObject.GetComponent<PlantEnemy>();
+            flyEnemy = collision.gameObject.GetComponent<FlyEnemy>();
 
-        if (groundEnemy != null)
-        {
-            groundEnemy.TakeDamage(Damage);
-        }
-        if (plantEnemy != null)
-        {
-            plantEnemy.TakeDamage(Damage);
+            if (groundEnemy != null)
+            {
+                groundEnemy.TakeDamage(Damage);
+            }
+            if (plantEnemy != null)
+            {
+                plantEnemy.TakeDamage(Damage);
+            }
+            if (flyEnemy != null)
+            {
+                flyEnemy.TakeDamage(Damage);
+            }
         }
     }
 

@@ -8,6 +8,8 @@ TagManager:
   - Ladder
   - PowerUP_01
   - Foot
+  - Wall
+  - Ground
   layers:
   - Default
   - TransparentFX

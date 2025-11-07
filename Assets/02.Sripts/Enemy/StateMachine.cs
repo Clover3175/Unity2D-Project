@@ -12,7 +12,7 @@ public class StateMachine : MonoBehaviour
 
     void Start()
     {
-        curState.Enter();
+        
     }
 
     void Update()
@@ -37,6 +37,7 @@ public class StateMachine : MonoBehaviour
         //딕셔너리에서 해당 이름의 객체를 찾아서 현재 상태로 설정한다.
         curState = stateDic[stateName];
         curState.Awake();
+        curState.Enter();
     }
     //상태를 상태머신에 등록
     public void AddState(string stateName, BaseState state)

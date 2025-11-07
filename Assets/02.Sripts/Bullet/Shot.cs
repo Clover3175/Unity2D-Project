@@ -1,4 +1,7 @@
+using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.LowLevel;
 
 public class Shot : MonoBehaviour
 {
@@ -11,14 +14,20 @@ public class Shot : MonoBehaviour
     [SerializeField] private float nextShotTime;     //다음 발사 가능 시간
     public Transform ShotPoint;
 
+    [Header("공격시 멈추는 시간")]
+    [SerializeField] private float stopTime = 0.4f;
+
     private SpriteRenderer playerSprite;
 
     private SpriteRenderer sprite;
 
-    private PlayerController playerController; 
+    private PlayerController playerController;
+    private Rigidbody2D playerRb;
     private Animator anim;
 
     private PlayerStats playerStats;
+
+    private static readonly int shotHash = Animator.StringToHash("Shot");
 
     private void Awake()
     {
@@ -26,6 +35,7 @@ public class Shot : MonoBehaviour
         sprite = GetComponent<SpriteRenderer>();
 
         playerController = transform.parent.GetComponent<PlayerController>();
+        playerRb = playerController.GetComponent<Rigidbody2D>();
         anim = playerController.GetComponent<Animator>();  //플레이어의 애니메이션
 
         playerStats = playerController.GetComponent<PlayerStats>();
@@ -56,6 +66,10 @@ public class Shot : MonoBehaviour
             {
                 PowerUPShot();
             }
+
+            anim.SetTrigger(shotHash);
+
+            StartCoroutine(StopMove());
         }
         if (playerStats.UpYes)
         {
@@ -122,5 +136,15 @@ public class Shot : MonoBehaviour
         {
             bulletUP.dir = Vector2.right;
         }                                         //여기까지
+    }
+    IEnumerator StopMove()
+    {
+        playerController.playerStop = true;
+
+        playerRb.velocity = Vector2.zero;
+
+        yield return new WaitForSeconds(stopTime);
+
+        playerController.playerStop = false;
     }
 }

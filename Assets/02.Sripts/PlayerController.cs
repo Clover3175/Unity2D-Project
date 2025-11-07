@@ -1,9 +1,8 @@
-using System;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    [Header("이동/점프/대쉬")]
+    [Header("이동/점프/대쉬/")]
     [SerializeField] private float moveSpeed = 5.0f;  //이동속도
     [SerializeField] private float jumpForce = 7.0f;  //점프높이
     [SerializeField] private float moveDash = 7.0f;   //대쉬속도
@@ -20,14 +19,19 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float wallJumpForce = 5.0f;        //벽에서 점프하는 높이
     [SerializeField] private LayerMask wallLayer;
 
-
     [Header("사다리 종료 후 중력 작용 크기")]
-    [SerializeField] private float ladderGravity = 1.0f;
+    [SerializeField] private float thisGravity = 1.0f;
+
+    [Header("낙하 피해/데미지 높이")]
+    [SerializeField] private float damageY = -5.0f;
+    [SerializeField] private float deathY = -10.0f;
+    private float fallSpeed;
 
     //내부 컴포넌트
     private Rigidbody2D rb;
     private SpriteRenderer sprite;
     private Animator anim;
+    private PlayerStats playerStats;
 
     private float inputX;     //방향키 좌우
     private float inputY;     //방향키 상하
@@ -39,23 +43,27 @@ public class PlayerController : MonoBehaviour
     private bool isWallJump;
     private float isRight = 1;    //방향
 
-    public bool isBouncing = false;  // 피격되었을때
-
+    public bool playerStop = false;  // 피격되거나 공격할 때 멈추게 하기
+    private bool wasGround;
+    //private bool landed;
 
     //애니메이션
     private static readonly int walkHash = Animator.StringToHash("Walk"); 
     private static readonly int jumpHash = Animator.StringToHash("Jump"); 
+    private static readonly int runHash = Animator.StringToHash("Run"); 
+    private static readonly int clingHash = Animator.StringToHash("Cling"); 
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         sprite = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
+        playerStats = GetComponent<PlayerStats>();
     }
     private void OnEnable()
     {
         rb.velocity = Vector3.zero;
-        isBouncing = false;
+        playerStop = false;
     }
 
     void Update()
@@ -70,12 +78,12 @@ public class PlayerController : MonoBehaviour
                 if (inputX < 0)   //왼쪽
                 {
                     sprite.flipX = true;
-                    isRight = isRight * -1;
+                    isRight = -1;
                 }
                 else  //오른쪽
                 {
                     sprite.flipX = false;
-                    isRight = isRight * -1;
+                    isRight = 1;
                 }
             }
         }
@@ -90,7 +98,7 @@ public class PlayerController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (isBouncing) return;
+        if (playerStop) return;
 
         PlayerMove();
         
@@ -98,12 +106,16 @@ public class PlayerController : MonoBehaviour
 
         PlayerWall();
 
+        PlayerFall();
+
         //사다리타기
         if (isLadder)
         { 
             if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.DownArrow))
             {
                 ladderUp = true;
+
+                anim.SetBool(jumpHash, false);
             }
             if (ladderUp)
             {
@@ -112,14 +124,14 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                rb.gravityScale = ladderGravity;
+                rb.gravityScale = thisGravity;
             }
         }
         else
         {
             PlayerJump();
             ladderUp = false;
-            rb.gravityScale = ladderGravity;
+            rb.gravityScale = thisGravity;
         }
     }
     //플레이어 이동
@@ -138,7 +150,7 @@ public class PlayerController : MonoBehaviour
         if (isJumped && isGrounded)
         {
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
-            //anim.SetBool(jumpHash, true);
+            anim.SetBool(jumpHash, true);
         }
         isJumped = false;
 
@@ -153,6 +165,12 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKey(KeyCode.S))
         {
             rb.velocity = new Vector2(inputX * moveDash, rb.velocity.y);
+
+            anim.SetBool(runHash, true);
+        }
+        else
+        {
+            anim.SetBool(runHash, false);
         }
     }
     //플레이어 벽 점프
@@ -174,10 +192,40 @@ public class PlayerController : MonoBehaviour
                 isRight = isRight * - 1; 
             }
         }
+        anim.SetBool(clingHash, isWall);
     }
     private void FreezeX()
     {
         isWallJump = false;
+    }
+    //낙하 데미지/사망
+    private void PlayerFall()
+    { 
+        if (!isGrounded)
+        {
+            if (rb.velocity.y < fallSpeed)
+            {
+                fallSpeed = rb.velocity.y;
+            }
+        }
+        else if (!wasGround && isGrounded)
+        {
+            if (fallSpeed < damageY)
+            {
+                playerStats.TakeDamage(1);
+            }
+            if (fallSpeed < deathY)
+            {
+                playerStats.TakeDamage(5);
+            }
+            fallSpeed = 0f;
+        }
+        wasGround = isGrounded;
+
+        if (transform.position.y < -100)
+        {
+            playerStats.TakeDamage(5);
+        }
     }
     private void OnDrawGizmosSelected()
     {
